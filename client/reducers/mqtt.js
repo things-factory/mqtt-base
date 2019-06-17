@@ -2,7 +2,9 @@ import { CONNECT, SUBSCRIBE, UNSUBSCRIBE, PUBLISH, DISCONNECT } from '../actions
 import * as MQTT from 'mqtt'
 
 const INITIAL_STATE = {
-  connections: {}
+  mqtt: {
+    connections: {}
+  }
 }
 
 function getConnection(connections, brokerUrl) {
@@ -30,14 +32,17 @@ function disconnect(client) {
 }
 
 const mqtt = (state = INITIAL_STATE, action) => {
+  let connection
+  let client
+
   switch (action.type) {
     case CONNECT:
-      const connection = getConnection(state.mqtt.connections, action.brokerUrl)
+      connection = getConnection(state.mqtt.connections, action.brokerUrl)
 
       if (!connection) {
-        const client = connect(action.brokerUrl)
-        state.mqtt.connections[brokerUrl] = {
-          brokerUrl,
+        client = connect(action.brokerUrl)
+        state.mqtt.connections[action.brokerUrl] = {
+          brokerUrl: action.brokerUrl,
           client
         }
       }
@@ -49,12 +54,12 @@ const mqtt = (state = INITIAL_STATE, action) => {
       if (!action.brokerUrl || !action.topic || !action.message) return
 
       // 2. if there's brokerUrl check whether connection is exist or not.
-      const connection = getConnection(state.mqtt.connections, action.brokerUrl)
-      let client
+      connection = getConnection(state.mqtt.connections, action.brokerUrl)
+      client
       if (!connection) {
         client = connect(action.brokerUrl)
-        state.mqtt.connections[brokerUrl] = {
-          brokerUrl,
+        state.mqtt.connections[action.brokerUrl] = {
+          brokerUrl: action.brokerUrl,
           client
         }
       } else {
@@ -70,10 +75,10 @@ const mqtt = (state = INITIAL_STATE, action) => {
       if (!action.brokerUrl || !action.topic) return
 
       // 1. we need to pop out the client of connection (brokerUrl)
-      const connection = getConnection(state.mqtt.connections, action.brokerUrl)
+      connection = getConnection(state.mqtt.connections, action.brokerUrl)
       if (!connection) return
 
-      const client = connection.client
+      client = connection.client
 
       // 2. unsubscribe the topic
       unsubscribe(client, action.topic)
@@ -83,10 +88,10 @@ const mqtt = (state = INITIAL_STATE, action) => {
       // 1. validate connection (brokerUrl, topic, message)
       if (!action.brokerUrl || !action.topic || !action.message) return
 
-      const connection = getConnection(state.mqtt.connections, action.brokerUrl)
+      connection = getConnection(state.mqtt.connections, action.brokerUrl)
       if (!connection) return
 
-      const client = connection.client
+      client = connection.client
       // 2. publish message to the topic, if we need to get data from UI, use action.<<param>>
       publish(client, action.topic, action.message)
 
@@ -95,10 +100,10 @@ const mqtt = (state = INITIAL_STATE, action) => {
     case DISCONNECT:
       if (!action.brokerUrl) return
 
-      const connection = getConnection(state.mqtt.connections, action.brokerUrl)
+      connection = getConnection(state.mqtt.connections, action.brokerUrl)
 
       if (!connection) return
-      const client = connection.client
+      client = connection.client
 
       disconnect(client)
       delete state.mqtt.connections[action.brokerUrl]
