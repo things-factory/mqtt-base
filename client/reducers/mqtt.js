@@ -1,6 +1,5 @@
 import { SUBSCRIBE, UNSUBSCRIBE, PUBLISH, DISCONNECT } from '../actions/mqtt'
 import * as MQTT from 'mqtt'
-import { disconnect } from 'cluster'
 
 const INITIAL_STATE = {
   mqtt: {
